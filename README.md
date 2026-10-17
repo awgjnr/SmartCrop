@@ -10,7 +10,7 @@ No build, account or API key is required. Serve the repository root:
 python3 -m http.server 8000
 ```
 
-Open `http://localhost:8000`. The original calculator is at `index.html`; choose **Field Studio** or open `field.html` for the map planner. Opening the files directly also works, with a cooperative calculation fallback instead of a worker. Live GPS requires a secure browser context and location permission.
+Open `http://localhost:8000`. The original calculator is at `index.html`; choose **Field Studio** or open `field.html` for the map planner. **Farm Desk** (`farm.html`) adds yield, labour, water, weather and crop-health case records. Opening the files directly also works, with a cooperative calculation fallback instead of a worker. Live GPS requires a secure browser context and location permission.
 
 Deploy these static files together to an HTTPS host for installation and offline use. Open the app once online to cache its files. Map tiles require internet and are deliberately not downloaded for offline use. GPS availability depends on the device and permissions. Publishing a Codex environment is separate from hosting this website.
 
@@ -80,3 +80,51 @@ A real Chromium download failed in the build environment. Browser appearance, de
 - `sw.js`, `manifest.webmanifest`, `icon.svg`: installable offline shell.
 
 Crop images were generated with OpenAI image generation as a 6 × 4 muted watercolor/pencil botanical atlas. They are illustrative, not cultivar-identification references. Crop spacing presets and yield examples require local agronomic validation.
+
+
+## Farm Desk: production planning and crop health
+
+Farm Desk can import the current selected Field Studio layout (planting count, plantable area and approximate block centre), or work with manual inputs. A changed field layout invalidates the handoff so old counts are not silently re-used. Existing Farm Desk quantities remain user-editable; changing a field does not silently rewrite activity budgets.
+
+### Yield and labour
+
+Yield can be calculated from gross kg per surviving plant (apply survival and marketable share once) or an already-marketable t/ha benchmark (do not deduct those losses again). Conservative, base and optimistic assumptions and the yield period are explicit. Sale price gives scenario revenue, not profit. User-entered disease/weather observations do not automatically change yield assumptions.
+
+Labour activities support worker-day, plant/piece, hectare and contract pricing. Quantity × rate × rounds gives cost. Worker-day quantities directly supply effort; other bases need optional productivity in units per worker-day. Dividing known worker-days by crew gives aggregate crew working-days, not a dated schedule. Activities with unknown effort remain visibly unknown rather than being treated as zero effort. This is a planning budget, not payroll.
+
+### Water and weather
+
+Water profiles record source type, sustainable source flow, pump delivery at working head, pumping hours, usable storage, seasonality, quality-assessment status and irrigation type. A simplified daily balance uses ET₀ × Kc minus an assumed effective share of rainfall, then divides by application efficiency. Capacity is the lower of source and pump flow multiplied by pumping hours. Stored water is reported separately and is not assumed to replenish daily. The calculation does not size pipes, determine pump head, model soil moisture/salinity or replace an irrigation design.
+
+Weather is fetched from Open-Meteo at explicitly entered/imported latitude and longitude, with seven daily forecasts, temperature, rain, probability, wind and reference ET₀. The provider timezone, fetch timestamp and stale-cache status are shown. Forecasts older than six hours cannot be applied with the shortcut. Network failures do not produce fabricated weather. The weather endpoint is not a local sensor or a disease-prediction model. Provider null values remain missing.
+
+The public Open-Meteo endpoint is offered under its published non-commercial API terms. Check a licensed/commercial API arrangement before a commercial release; this repository does not contain a paid weather credential or a commercial subscription. Data attribution is displayed. An external weather request sends the coordinate, not the full boundary.
+
+### Crop-health records and reference coverage
+
+Users can capture crop, country, region, district, date, affected parts, growth stage, field pattern, extent, symptoms, recent inputs and up to two photos. Photos are resized locally to JPEG, removing original photo metadata from the transmitted derivative, and retained with case records in IndexedDB. Cases include treatment actually applied, adviser confirmation details, follow-up date and observations. Exported case JSON includes the photos and can be shared manually with an adviser; the app does not send messages to anyone.
+
+**Coverage is deliberately limited.** Initial source-linked profiles cover maize fall-armyworm screening, tomato early-blight differential, cabbage diamondback-moth differential, systemic/planting-material concerns for cassava/yam/plantain/banana, and pepper bacterial-spot and root/crown-rot differentials. Other crops get case capture and an unresolved-problem workflow, not an invented disease list. Country/region/district input supplies context; it does not establish pest occurrence. There is no live district outbreak feed or validated location-specific pest model. California extension references are labelled as general identification/IPM references, not Ghana pesticide registrations or Ghana occurrence evidence.
+
+The symptom-reference button is keyword matching, explicitly labelled as such; it never claims to analyse images. Management guidance is source-linked and prioritises observation, clean material, cultural management and adviser confirmation. This version does **not** recommend chemical products, doses or spray schedules. Before pesticide decisions, verify diagnosis, registration, exact product label, PPE, re-entry and pre-harvest intervals, and local resistance guidance.
+
+### Connecting photo screening
+
+Photo capture and local case storage work without an AI service. Actual photo screening requires hosting the backend and supplying **server-only** configuration:
+
+```
+OPENAI_API_KEY=your-provider-key
+VISION_MODEL=an-available-vision-model-supporting-strict-json-schema
+DIAGNOSIS_ACCESS_TOKEN=a-strong-private-farm-access-code
+APP_ORIGIN=https://your-app.example
+```
+
+Use `.env.example` as a template; `.env` is ignored by git. Never commit keys. For local use, set environment variables then run `npm start`, or run `node --env-file=.env server.cjs` with a supported Node version. Static `python3 -m http.server` or GitHub Pages cannot execute the image backend. The default OpenAI REST endpoint is used; no provider SDK or installation dependency is required. On a compatible host such as Vercel, configure the variables in the host's environment settings. No hosting deployment or live provider credential was created by this change.
+
+`GET /api/diagnose` reports whether the service is configured. `POST /api/diagnose` requires the farm access code, explicit upload consent, crop, location context, symptoms and one or two JPEG/PNG/WebP data images. Exact farm coordinates are not sent by the client. The browser access code is not included in plan or case backups. A farm access code is not individual user authentication; add proper account access and platform-level request limits/provider budgets before exposing paid inference broadly.
+
+The server requests structured observations, uncertain differential IDs, questions and review urgency. It filters suggestions against the selected crop and attaches reference guidance from the curated library. Unusable photos do not produce disease suggestions. Unknown and out-of-library causes remain unresolved. This is screening, not confirmed diagnosis or a validated plant-pathology model. Provider refusals, bad outputs, timeouts and missing configuration return explicit errors; no diagnosis is fabricated. Case details changed during an in-flight request invalidate that result.
+
+### Validation limits
+
+New calculation, API-boundary and simulated-interface tests cover yield-loss accounting, labour bases, water/source bottlenecks, missing weather, crop/location coverage, consent and image limits, provider configuration/auth/failure states, photo-case storage and exports, and plan handoffs. Provider responses and weather were mocked for repeatability. A live paid image request, live weather delivery, real-device photo decoding, IndexedDB behaviour and browser rendering remain unverified in this environment. Earlier browser-download restrictions still apply.
