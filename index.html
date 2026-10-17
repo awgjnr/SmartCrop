@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SmartCrop – Plant population calculator</title>
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#2a7a3d">
+<style>
+:root{--bg:#e9efe3;--card:#fbfdf8;--ink:#16281c;--mut:#566a5b;--line:#cbd8c4;--acc:#2a7a3d;--acc2:#d9a21f;--warn:#b2461d;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0f1a13;--card:#17251c;--ink:#e6f0e3;--mut:#93a898;--line:#2a3c2f;--acc:#5fbf74;--acc2:#e6b73c;--warn:#ef8a5e;color-scheme:dark}}
+:root[data-theme=dark]{--bg:#0f1a13;--card:#17251c;--ink:#e6f0e3;--mut:#93a898;--line:#2a3c2f;--acc:#5fbf74;--acc2:#e6b73c;--warn:#ef8a5e;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Figtree,system-ui,sans-serif;padding:0 14px 96px;max-width:640px;margin-inline:auto}
+h1,h2,summary{font-family:'Bricolage Grotesque',Figtree,sans-serif}
+h1{font-size:28px;font-weight:800;margin:18px 0 2px}.sub{color:var(--mut);margin:0 0 14px;font-size:14px}
+details,.card{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:0 0 12px}
+summary{font-size:18px;font-weight:600;padding:14px 16px;cursor:pointer;list-style:none}
+summary::-webkit-details-marker{display:none}summary:after{content:"+";float:right;color:var(--acc)}details[open]>summary:after{content:"–"}
+.in{padding:0 16px 14px}.card{padding:14px 16px}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
+input,select,button{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%;min-height:46px}
+input[aria-invalid="true"]{border:2px solid var(--warn)}button:disabled{opacity:.5;cursor:not-allowed}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.hide{display:none}
+button{background:var(--acc);color:#fff;border:0;font-weight:600;cursor:pointer}button.alt{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
+.big{font:800 34px 'Bricolage Grotesque',sans-serif;color:var(--acc);line-height:1.1}.lab{font-size:13px;color:var(--mut)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.grid b{font-size:19px;display:block}
+.sc{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.sc div{border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center;font-size:12px;color:var(--mut)}.sc b{display:block;font-size:16px;color:var(--ink)}
+.sc div:nth-child(2){border-color:var(--acc)}
+.warn{color:var(--warn);font-size:14px;margin:8px 0}.note{font-size:12.5px;color:var(--mut);margin-top:10px}
+pre{white-space:pre-wrap;font:13px/1.5 ui-monospace,Menlo,monospace;margin:8px 0 0}
+svg{width:100%;height:auto;display:block;margin-top:8px}
+#bar{position:fixed;left:0;right:0;bottom:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;z-index:5}
+#bar b{font-size:18px}#bar span{font-size:12px;color:var(--mut);display:block}
+.saved{display:flex;gap:8px;margin-top:8px}.saved button{min-height:40px}.saved{flex-wrap:wrap}.saved button{width:auto}.saved button:first-child{flex:1;text-align:left}
+@media print{body{max-width:none;padding:0;background:white;color:black}#bar,#sv,#cp,#share,#print,#th,#export,#import,#list{display:none}.card,details{break-inside:avoid}details:not([open]){display:none}}
+#crop-figure{margin:12px 0 0}#crop-image{width:min(100%,260px);aspect-ratio:1;margin:auto;border-radius:14px;background-image:url(assets/crops.png);background-size:600% 400%;background-repeat:no-repeat;opacity:.8}#crop-caption{text-align:center;font-weight:600;margin-top:8px}
+</style></head><body>
+<h1>SmartCrop</h1><p class="sub">Plant population, planting material and yield planner. Everything runs on your phone.</p>
+
+<details open><summary>1. Crop</summary><div class="in">
+<label for="crop">Crop</label><select id="crop" data-s></select>
+<figure id="crop-figure"><div id="crop-image" role="img"></div><figcaption id="crop-caption"></figcaption><div class="note">Botanical illustration of plant and produce; varieties may differ.</div></figure><div class="note" id="cnote"></div></div></details>
+
+<details open><summary>2. Land and spacing</summary><div class="in">
+<div class="row"><div><label for="area">Land size</label><input id="area" data-s type="number" inputmode="decimal" value="1" min="0"></div>
+<div><label for="au">Unit</label><select id="au" data-s><option value="ac">acres</option><option value="ha">hectares</option><option value="m2">m²</option><option value="ft2">ft²</option></select></div></div>
+<label for="landmode">Land input</label><select id="landmode" data-s><option value="area">Area only</option><option value="rectangle">Rectangular field dimensions</option></select>
+<div id="field-inputs" class="hide">
+<div class="row"><div><label for="fl">Field length</label><input id="fl" data-s type="number" step="any" value="100"></div><div><label for="fw">Field width</label><input id="fw" data-s type="number" step="any" value="40"></div></div>
+<div class="row"><div><label for="fu">Dimension unit</label><select id="fu" data-s><option value="m">metres</option><option value="ft">feet</option></select></div><div><label for="margin">Boundary margin on every side</label><input id="margin" data-s type="number" step="any" value="1" min="0"></div></div>
+<label for="direction">Row direction</label><select id="direction" data-s><option value="length">Along field length</option><option value="width">Along field width</option></select>
+<div class="note">Margin uses the dimension unit. Dimension mode uses boundary margins instead of the percentage deduction. Internal obstacles must be planned separately. Counts reserve half a plant spacing at each row end; single and triangular rows reserve half a row spacing at the sides. Only complete pairs or beds fit.</div></div>
+<label for="ded">Paths, drains, buildings, unusable land (% of area)</label><input id="ded" data-s type="number" inputmode="decimal" value="0" min="0" max="90">
+<div class="row"><div><label for="lt">Planting system</label><select id="lt" data-s>
+<option value="single">Single row</option><option value="double">Double row</option><option value="group">Grouped rows (including triple)</option><option value="bed">Beds with walkways</option><option value="tri">Triangular</option></select></div>
+<div><label for="su">Spacing unit</label><select id="su" data-s><option value="cm">cm</option><option value="m">m</option><option value="in">inches</option><option value="ft">feet</option></select></div></div>
+<div id="g-single" class="row"><div><label for="r">Between rows</label><input id="r" data-s type="number" inputmode="decimal" step="any"></div><div><label for="p">Between plants</label><input id="p" data-s type="number" inputmode="decimal" step="any"></div></div>
+<div id="g-double" class="row hide"><div><label for="d">Gap between rows within a pair</label><input id="d" data-s type="number" inputmode="decimal" step="any" value="40"></div><div><label for="B">Clear gap between neighbouring pairs</label><input id="B" data-s type="number" inputmode="decimal" step="any" value="80"></div></div>
+<div id="double-note" class="note hide">Measure the clear gap from the last row of one pair to the first row of the next. Pair pitch = within-pair gap + between-pair gap.</div>
+<div id="g-group" class="row hide"><div><label for="gr">Rows per group</label><input id="gr" data-s type="number" value="3" min="2" max="100"></div><div><label for="gi">Within-group row gap</label><input id="gi" data-s type="number" value="40" step="any"></div><div><label for="gg">Clear gap between groups</label><input id="gg" data-s type="number" value="80" step="any"></div></div>
+<label for="alignment">Plant alignment</label><select id="alignment" data-s><option value="aligned">Aligned rows</option><option value="staggered">Stagger alternate rows</option></select>
+<div id="g-bed" class="row hide"><div><label for="bw">Bed width</label><input id="bw" data-s type="number" inputmode="decimal" step="any" value="100"></div><div><label for="ww">Walkway width</label><input id="ww" data-s type="number" inputmode="decimal" step="any" value="40"></div><div><label for="rows">Rows per bed</label><input id="rows" data-s type="number" inputmode="numeric" value="3" min="1"></div></div>
+<div id="g-tri" class="hide"><label for="ts">Spacing between neighbours</label><input id="ts" data-s type="number" inputmode="decimal" step="any"></div>
+<div id="g-p2" class="hide"><label for="p2">Between plants in the row</label><input id="p2" data-s type="number" inputmode="decimal" step="any" value="30"></div>
+<svg id="dia" viewBox="0 0 320 170" role="img" aria-label="Planting layout"></svg>
+<div class="note">Sketch of a repeating section, not the whole field. Staggering a rectangular layout does not change density.</div>
+</div></details>
+
+<details><summary>3. Assumptions</summary><div class="in">
+<div class="row"><div><label for="water">Water</label><select id="water" data-s><option>Rain-fed</option><option>Supplementary irrigation</option><option>Fully irrigated</option></select></div>
+<div><label for="org">System</label><select id="org" data-s><option>Conventional</option><option>Organic</option><option>Integrated</option></select></div></div>
+<div class="note">These do not change plant count. Set yield per plant below to match your system.</div>
+<div class="row"><div><label for="surv">Survival to harvest (%)</label><input id="surv" data-s type="number" inputmode="decimal" value="90"></div>
+<div><label for="mkt">Marketable share (%)</label><input id="mkt" data-s type="number" inputmode="decimal" value="90"></div></div>
+<label for="ypp">Base gross yield per surviving plant (kg)</label><input id="ypp" data-s type="number" inputmode="decimal" step="any">
+<label for="period">Yield period</label><select id="period" data-s><option>Per crop cycle</option><option>Per harvest</option><option>Per year</option></select>
+<div class="row"><div><label for="low">Conservative yield (% of base)</label><input id="low" data-s type="number" value="60" min="1" max="100"></div><div><label for="high">Optimistic yield (% of base)</label><input id="high" data-s type="number" value="160" min="100"></div></div>
+<div class="note">Yield inputs are user assumptions. Preset yields are illustrative and unverified for your variety, location and yield period. Density changes do not automatically account for competition between plants.</div>
+<div class="row"><div><label for="per">Seeds or propagules per position</label><input id="per" data-s type="number" inputmode="numeric" value="1" min="1"></div>
+<div><label for="via">Germination or nursery survival (%)</label><input id="via" data-s type="number" inputmode="decimal" value="90"></div></div>
+<div class="row"><div><label for="rep">Replacement allowance (%)</label><input id="rep" data-s type="number" inputmode="decimal" value="10"></div>
+<div><label for="spk">Seeds per kg (optional)</label><input id="spk" data-s type="number" inputmode="decimal" placeholder="e.g. 3500"></div></div>
+<details><summary>Optional nutrient balance</summary><div class="in"><div class="note">Enter nutrient targets from your agronomist or soil-test recommendation. This calculates product quantities only; it does not prescribe rates or application timing. Organic systems require a separate amendment analysis.</div>
+<div class="row" style="grid-template-columns:repeat(3,1fr)"><div><label for="fn">N kg/ha</label><input id="fn" data-s type="number" step="any"></div><div><label for="fp">P₂O₅ kg/ha</label><input id="fp" data-s type="number" step="any"></div><div><label for="fk">K₂O kg/ha</label><input id="fk" data-s type="number" step="any"></div></div>
+<div class="note">Uses separate urea (46% N), triple superphosphate (46% P₂O₅) and muriate of potash (60% K₂O). Confirm product labels and crop suitability before use.</div></div></details>
+<label for="tgt">Harvest target in kg (optional, for land planning)</label><input id="tgt" data-s type="number" inputmode="decimal" placeholder="e.g. 5000">
+</div></details>
+
+<div class="card" id="res" role="status" aria-live="polite"></div>
+<div class="card"><div class="lab">Save this calculation</div>
+<div class="row"><input id="nm" placeholder="Name, e.g. Block A maize"><button id="sv">Save</button></div>
+<div id="save-status" role="status"></div><div id="list"></div><button class="alt" id="export" style="margin-top:8px">Export saved plans</button><label for="import">Import saved plans (JSON)</label><input id="import" type="file" accept="application/json"><button class="alt" id="cp" style="margin-top:10px">Copy summary</button>
+<button class="alt" id="share" style="margin-top:8px">Share summary</button><button class="alt" id="print" style="margin-top:8px">Print / save PDF</button>
+<button class="alt" id="th" style="margin-top:8px">Switch light or dark</button></div>
+<div class="note">Offline: this downloaded HTML runs without internet. For installation, serve the offline package over HTTPS and open it once while online.</div><div class="note">Crop yields and spacings are indicative starting benchmarks. Confirm them with local extension guidance and replace them with your own figures. Estimates are not guaranteed outcomes.</div>
+<div id="bar"><div><b id="b1">–</b><span>plants in total</span></div><div style="text-align:right"><b id="b2">–</b><span>base yield</span></div></div>
+
+<script>
+const $=id=>document.getElementById(id),UF={cm:.01,m:1,in:.0254,ft:.3048},LF={ac:4046.856,ha:1e4,m2:1,ft2:.092903};
+const CR=[['Cereals','Maize',.75,.25,90,[3,5,8]],['Cereals','Rice (transplanted)',.2,.2,85,[3,4.5,6]],['Cereals','Sorghum',.75,.2,85,[1,2,3]],
+['Vegetables','Tomato',1,.5,90,[15,30,60]],['Vegetables','Pepper / habanero',.9,.5,90,[5,10,20]],['Vegetables','Cabbage',.6,.45,90,[20,35,50]],['Vegetables','Lettuce',.3,.3,90,[15,25,35]],['Vegetables','Onion',.3,.1,85,[15,25,40]],['Vegetables','Okra',.75,.3,85,[4,8,12]],['Vegetables','Cucumber',1,.4,90,[15,25,40]],
+['Roots and tubers','Cassava',1,1,85,[10,20,35]],['Roots and tubers','Yam',1,1,85,[8,15,25]],['Roots and tubers','Sweet potato',.9,.3,85,[8,15,25]],
+['Plantation','Plantain',3,2,90,[8,15,25]],['Plantation','Banana',2.5,2.5,90,[20,35,50]],['Plantation','Pineapple',.9,.25,90,[25,40,60]],['Plantation','Cocoa',3,3,85,[.4,.8,1.5]],['Plantation','Oil palm (triangular)',9,9,95,[10,18,28],'tri'],
+['Legumes','Groundnut',.45,.1,80,[1,1.8,3]],['Legumes','Cowpea',.6,.2,85,[.5,1.2,2.5]],['Legumes','Soybean',.5,.1,85,[1.5,2.5,3.5]],
+['Fruits','Watermelon',2,1,90,[15,30,50]],['Fruits','Papaya',2.5,2,85,[30,60,90]]];
+const stdD=c=>c[6]=='tri'?1/(.866*c[2]*c[2]):1/(c[2]*c[3]);
+let cur=-1,ratio=[.6,1,1.6],last='';
+const cs=$('crop');let h='<option value="x">Custom crop (enter your own)</option>',g='';
+CR.forEach((c,i)=>{if(c[0]!=g){if(g)h+='</optgroup>';h+='<optgroup label="'+c[0]+'">';g=c[0]}h+='<option value="'+i+'">'+c[1]+'</option>'});cs.innerHTML=h+'</optgroup>';
+const su=()=>UF[$('su').value],disp=m=>+(m/su()).toFixed(3);
+function updateCropImage(){const index=cur>=0&&cur<CR.length?cur:23;const name=cur>=0&&cur<CR.length?CR[cur][1]:'Custom crop';$('crop-image').style.backgroundPosition=((index%6)*20)+'% '+(Math.floor(index/6)*100/3)+'%';$('crop-image').setAttribute('aria-label',name+' botanical illustration: plant and harvested produce');$('crop-caption').textContent=name;}
+function setCrop(){const v=cs.value;if(v=='x'){cur=-1;ratio=[.6,1,1.6];$('low').value=60;$('high').value=160;$('ypp').value='';$('cnote').textContent='Enter spacing and yield per plant yourself.';return calc()}
+cur=+v;const c=CR[cur];$('lt').value=c[6]||'single';lay();
+$('r').value=disp(c[2]);$('p').value=disp(c[3]);$('ts').value=disp(c[2]);
+$('surv').value=c[4];$('ypp').value=+(c[5][1]*1000/(stdD(c)*(c[4]/100)*.9)).toFixed(4);ratio=[c[5][0]/c[5][1],1,c[5][2]/c[5][1]];
+$('low').value=+(ratio[0]*100).toFixed(2);$('high').value=+(ratio[2]*100).toFixed(2);$('period').value='Per crop cycle';
+$('cnote').textContent='Illustrative spacing '+c[2]+' × '+c[3]+' m, benchmark yield '+c[5][0]+'–'+c[5][2]+' t/ha at standard density. Confirm the yield period and replace assumptions with field data.';['fn','fp','fk'].forEach(id=>$(id).value='');calc()}
+function lay(){const t=$('lt').value;$('double-note').classList.toggle('hide',t!='double');['single','double','group','bed','tri'].forEach(k=>$('g-'+k).classList.toggle('hide',k!=t));$('g-p2').classList.toggle('hide',!['double','group','bed'].includes(t))}
+let ou='cm';$('su').value='cm';
+$('su').onchange=()=>{const f=UF[ou]/su();['r','p','ts','d','B','bw','ww','p2','gi','gg'].forEach(i=>{const e=$(i);if(e.value)e.value=+(e.value*f).toFixed(3)});ou=$('su').value;calc()};
+$('lt').onchange=()=>{lay();calc()};cs.onchange=()=>{ou=$('su').value;setCrop()};
+const n=x=>x.toLocaleString(undefined,{maximumFractionDigits:1}),kg=x=>x>=1000?n(x/1000)+' t':n(x)+' kg',v=i=>+$(i).value||0;
+function geom(){const u=su(),t=$('lt').value;let dm,txt;
+if(t=='single'){const r=v('r')*u,p=v('p')*u;dm=1/(r*p);txt='1 ÷ (row '+r.toFixed(3)+' m × plant '+p.toFixed(3)+' m)'}
+else if(t=='double'){const gap=v('B')*u,p=v('p2')*u,d=v('d')*u,B=d+gap;dm=2/(B*p);txt='2 rows ÷ ((within pair '+d.toFixed(3)+' + between pairs '+gap.toFixed(3)+' m) × plant '+p.toFixed(3)+' m)'}
+else if(t=='group'){const k=v('gr'),inside=v('gi')*u,gap=v('gg')*u,p=v('p2')*u;dm=k/(((k-1)*inside+gap)*p);txt=k+' rows ÷ (((rows − 1) × within-group gap + between-group gap) × plant spacing)'}
+else if(t=='bed'){const b=v('bw')*u,w=v('ww')*u,k=Math.floor(v('rows')),p=v('p2')*u;dm=k/((b+w)*p);txt=k+' rows ÷ ((bed '+b.toFixed(3)+' + walkway '+w.toFixed(3)+' m) × plant '+p.toFixed(3)+' m)'}
+else{const s=v('ts')*u;dm=1/(.866025*s*s);txt='1 ÷ (0.866 × '+s.toFixed(3)+' m²)'}
+if(!isFinite(dm)||dm<=0)return{err:'Enter spacing values greater than zero.'};return{dm,txt}}
+function clearResults(message){
+$('res').textContent=message;$('res').classList.add('warn');
+$('b1').textContent='–';$('b2').textContent='–';$('dia').innerHTML='';last='';
+$('cp').disabled=true;$('share').disabled=true;$('print').disabled=true;$('sv').disabled=true;
+}
+function validateInputs(){
+const t=$('lt').value;
+const rules=[['low',0,100,false],['high',100,Infinity,true],['area',0,Infinity,false],['ded',0,90,true],['surv',0,100,true],['mkt',0,100,true],['ypp',0,Infinity,true],['per',1,Infinity,true,true],['via',0,100,false],['rep',0,100,true],['spk',0,Infinity,false,false,true],['fn',0,Infinity,true,false,true],['fp',0,Infinity,true,false,true],['fk',0,Infinity,true,false,true],['tgt',0,Infinity,true,false,true]];
+if($('landmode').value==='rectangle'){rules.push(['fl',0,Infinity,false],['fw',0,Infinity,false],['margin',0,Infinity,true]);}
+if(t==='single')rules.push(['r',0,Infinity,false],['p',0,Infinity,false]);
+if(t==='double')rules.push(['d',0,Infinity,false],['B',0,Infinity,false],['p2',0,Infinity,false]);
+if(t==='group')rules.push(['gr',2,100,true,true],['gi',0,Infinity,false],['gg',0,Infinity,false],['p2',0,Infinity,false]);
+if(t==='bed')rules.push(['bw',0,Infinity,false],['ww',0,Infinity,true],['rows',1,100,true,true],['p2',0,Infinity,false]);
+if(t==='tri')rules.push(['ts',0,Infinity,false]);
+let first='';document.querySelectorAll('[data-s]').forEach(e=>e.removeAttribute('aria-invalid'));
+for(const [id,min,max,inclusive,integer,optional] of rules){
+const e=$(id),raw=e.value.trim(),x=Number(raw);
+if($('landmode').value==='rectangle'&&['area','ded'].includes(id))continue;
+if(optional&&raw===''&&!e.validity.badInput)continue;
+if(raw===''||!Number.isFinite(x)||(inclusive?x<min:x<=min)||x>max||(integer&&!Number.isInteger(x))){
+e.setAttribute('aria-invalid','true');
+const name=document.querySelector('label[for="'+id+'"]')?.textContent||id;
+if(!first)first=name+': enter '+(integer?'a whole number':'a number')+(max!==Infinity?' between '+min+' and '+max:(inclusive?' of at least ':' greater than ')+min)+'.';
+}
+}
+return first;
+}
+function fieldFit(length,width,margin,t,row,plant,within,pairGap,bed,walk,rows){
+const L=length-2*margin,W=width-2*margin;
+if(L<=0||W<=0)return{err:'Boundary margins leave no plantable field.'};
+const whole=(a,b)=>Math.floor(a/b+1e-10);
+let countRows=0,groups=0,perRow=whole(L,plant),total=0,usedWidth=0,shortRows=0,alternate=perRow;
+if(t==='single'){countRows=whole(W,row);usedWidth=countRows*row;total=countRows*perRow;}
+else if(t==='tri'){row=plant*Math.sqrt(3)/2;countRows=whole(W,row);shortRows=Math.floor(countRows/2);const offsetCount=Math.max(0,whole(L-plant/2,plant));alternate=offsetCount;total=(countRows-shortRows)*perRow+shortRows*offsetCount;usedWidth=countRows*row;}
+else if(t==='double'){groups=W+1e-10<within?0:whole(W-within,within+pairGap)+1;countRows=groups*2;usedWidth=groups?groups*within+(groups-1)*pairGap:0;total=countRows*perRow;}
+else if(t==='group'){const span=(rows-1)*within;groups=W+1e-10<span?0:whole(W-span,span+pairGap)+1;countRows=groups*rows;usedWidth=groups?groups*span+(groups-1)*pairGap:0;total=countRows*perRow;}
+else{groups=whole(W+walk,bed+walk);countRows=groups*rows;usedWidth=groups?groups*bed+(groups-1)*walk:0;total=countRows*perRow;}
+return{L,W,countRows,groups,perRow,total,shortRows,alternate,unusedWidth:Math.max(0,W-usedWidth),unusedLength:Math.max(0,L-perRow*plant)};
+}
+function calc(){
+updateCropImage();
+const rectangular=$('landmode').value==='rectangle';$('field-inputs').classList.toggle('hide',!rectangular);$('area').disabled=rectangular;$('au').disabled=rectangular;$('ded').disabled=rectangular;
+ratio=[v('low')/100,1,v('high')/100];
+const R=$('res'),error=validateInputs();
+if(error){clearResults(error);return}
+const G=geom();R.classList.remove('warn');
+if(G.err){clearResults(G.err);return}
+const factor=UF[$('fu').value],length=v('fl')*factor,width=v('fw')*factor,margin=v('margin')*factor;
+const fit=rectangular?fieldFit($('direction').value==='length'?length:width,$('direction').value==='length'?width:length,margin,$('lt').value,v('r')*su(),($('lt').value==='tri'?v('ts'):$('lt').value==='single'?v('p'):v('p2'))*su(),($('lt').value==='group'?v('gi'):v('d'))*su(),($('lt').value==='group'?v('gg'):v('B'))*su(),v('bw')*su(),v('ww')*su(),$('lt').value==='group'?v('gr'):v('rows')):null;
+if(fit&&$('alignment').value==='staggered'&&$('lt').value!=='tri'){fit.shortRows=Math.floor(fit.countRows/2);const plant=($('lt').value==='single'?v('p'):v('p2'))*su();fit.alternate=Math.max(0,Math.floor((fit.L-plant/2)/plant+1e-10));fit.total=(fit.countRows-fit.shortRows)*fit.perRow+fit.shortRows*fit.alternate;}
+if(fit?.err){clearResults(fit.err);return}
+const area=rectangular?length*width:v('area')*LF[$('au').value],net=rectangular?fit.L*fit.W:area*(1-v('ded')/100),ded=1-net/area,dm=G.dm;
+if(!Number.isFinite(net)||net<=0||!Number.isSafeInteger(Math.floor(net*dm))||(rectangular&&!Number.isSafeInteger(fit.total))){clearResults('Enter a land size and spacing that produce a finite, safely countable population.');return}
+const areaEstimate=Math.floor(net*dm),pos=rectangular?fit.total:areaEstimate,sv=v('surv')/100,mk=v('mkt')/100,hv=Math.floor(pos*sv),ypp=v('ypp'),
+rep=v('rep')/100,per=Math.max(1,v('per')),via=Math.max(1,v('via'))/100,mat=Math.ceil(pos*per*(1+rep)/via),spk=v('spk'),
+Y=ratio.map(r=>hv*ypp*r*mk),tg=v('tgt'),nm=net/1e4;
+if(![mat,...Y].every(Number.isFinite)||!Number.isSafeInteger(mat)){clearResults('These values exceed the calculation limit. Reduce the area, density or assumptions.');return}
+$('cp').disabled=false;$('share').disabled=false;$('print').disabled=false;$('sv').disabled=false;
+let tgh='',tx='',fh='',ftx='';
+{const rates=[v('fn'),v('fp'),v('fk')],products=['Urea (46% N)','Triple superphosphate (46% P₂O₅)','Muriate of potash (60% K₂O)'],fractions=[.46,.46,.6];
+if(rates.some(x=>x>0)){
+if($('org').value==='Organic')fh='<div class="note">Organic nutrient targets recorded. Amendment quantities need measured nutrient content and availability; mineral product quantities are not proposed.</div>';
+else{fh='<details><summary>Nutrient balance</summary><div class="in"><div class="note">For '+n(nm)+' ha of usable land. Mass balance only; timing and suitability require local advice.</div><table style="width:100%;font-size:13px"><tr><th>Product</th><th>kg</th><th>Nutrient supplied (kg)</th></tr>'+rates.map((r,i)=>'<tr><td>'+products[i]+'</td><td>'+n(r*nm/fractions[i])+'</td><td>'+n(r*nm)+'</td></tr>').join('')+'</table><div class="note">Each nutrient target is met separately: calculated excess/deficit = 0 kg before product rounding.</div></div></details>';ftx='\nNutrient products = target kg/ha × usable hectares ÷ labelled nutrient fraction.';}}
+}
+if(tg>0&&ypp>0&&sv>0&&mk>0){const q=ratio.map(r=>{const hp=tg/(ypp*r*mk),ps=Math.ceil(hp/sv),na=ps/dm,ga=na/(1-ded);return{hp,ps,ga}}),b=q[1],ok=rectangular?Y[1]>=tg:area>=b.ga;
+tgh='<div class="card" style="margin:12px 0 0"><div class="lab">Area-based land needed for '+kg(tg)+'</div><div class="big" style="font-size:26px">'+n(b.ga/LF.ac)+' acres <span class="lab">('+n(b.ga/1e4)+' ha)</span></div>'+
+'<div class="grid"><div><b>'+n(b.ps)+'</b>planting positions</div><div><b>'+n(b.hp)+'</b>harvestable plants</div></div>'+
+'<div class="'+(ok?'':'warn')+' note" style="'+(ok?'color:var(--acc)':'')+'">'+(ok?'Your land is enough in the base case.':(rectangular?'The fitted layout falls short by '+kg(Math.max(0,tg-Y[1]))+' in the base case.':'Your land falls short by '+n((b.ga-area)/LF.ac)+' acres in the base case.'))+' Rectangle fit must be checked separately. Conservative needs '+n(q[0].ga/LF.ac)+' acres; optimistic needs '+n(q[2].ga/LF.ac)+'.</div></div>';
+tx='\nHarvest to land (base): '+kg(tg)+' ÷ ('+ypp+' kg × '+mk+' marketable) = '+n(b.hp)+' plants; ÷ '+sv+' survival = '+n(b.ps)+' positions; ÷ '+n(dm)+' per m² ÷ '+(1-ded).toFixed(2)+' usable = '+n(b.ga)+' m².'}
+const fieldHtml=rectangular?'<div class="card"><b>Field layout: '+n(fit.countRows)+' rows × '+n(fit.perRow)+' plants per row</b>'+(fit.shortRows?' (alternate rows: '+n(fit.alternate)+' plants)':'')+'<div class="note">'+(fit.groups?n(fit.groups)+' complete '+($('lt').value==='double'?'pairs':$('lt').value==='group'?'groups':'beds')+'. ':'')+'Usable rectangle: '+n(fit.L)+' × '+n(fit.W)+' m. Unused width: '+n(fit.unusedWidth)+' m; row-end remainder: '+n(fit.unusedLength)+' m. Area-based estimate: '+n(areaEstimate)+' positions. Materials and yield below use the field-fit count. Boundary and end-row placement can make this differ from area × density.</div></div>':'';
+R.innerHTML=fieldHtml+'<div class="lab">Plants to establish</div><div class="big">'+n(pos)+'</div>'+
+'<div class="grid"><div><b>'+n(dm*1e4)+'</b>per hectare</div><div><b>'+n(dm*LF.ac)+'</b>per acre</div><div><b>'+n(hv)+'</b>harvestable plants</div><div><b>'+n(mat)+'</b>seeds or propagules'+(spk>0?' ('+n(mat/spk)+' kg)':'')+'</div></div>'+
+'<div class="note">Yield period: '+$('period').value+'</div><div class="sc"><div>Conservative<b>'+kg(Y[0])+'</b></div><div>Base<b>'+kg(Y[1])+'</b></div><div>Optimistic<b>'+kg(Y[2])+'</b></div></div>'+
+'<div class="note">Marketable yield. Net plantable area '+n(net/LF.ac)+' acres ('+n(nm)+' ha) of '+n(area/LF.ac)+' acres gross.</div>'+fh+tgh+
+'<details style="margin:12px 0 0"><summary style="font-size:15px">Calculation breakdown</summary><div class="in"><pre>Density = '+G.txt+' = '+dm.toFixed(4)+' plants/m²\nNet area = '+n(area)+' m² × (1 − '+ded.toFixed(2)+') = '+n(net)+' m²\nArea-based positions = floor('+n(net)+' × '+dm.toFixed(4)+') = '+n(areaEstimate)+(rectangular?'\nField-fit positions = '+n(pos):'')+'\nHarvestable = '+n(pos)+' × '+sv+' survival = '+n(hv)+'\nMaterial = '+n(pos)+' × '+per+' × (1 + '+rep+') ÷ '+via+' = '+n(mat)+'\nYield = '+n(hv)+' × '+ypp+' kg × scenario ('+ratio.map(r=>r.toFixed(2)).join(' / ')+') × '+mk+' marketable'+tx+ftx+'\n\nSurvival is measured after replanting, so the replacement allowance adds material only and losses are not counted twice.</pre></div></details>';
+$('b1').textContent=n(pos);$('b2').textContent=kg(Y[1]);
+last=(cur>=0?CR[cur][1]:'Custom crop')+' · '+n(area/LF.ac)+' acres gross, '+$('lt').selectedOptions[0].text.toLowerCase()+(rectangular?'\nField: '+n(length)+' × '+n(width)+' m; margin '+n(margin)+' m; '+n(fit.countRows)+' rows, up to '+n(fit.perRow)+' plants/row.':'')+'\nPlants: '+n(pos)+' ('+n(dm*1e4)+'/ha, '+n(dm*LF.ac)+'/acre)\nHarvestable plants: '+n(hv)+'\nMaterial: '+n(mat)+'\nMarketable yield (low/base/high): '+Y.map(kg).join(' / ')+'\n'+$('water').value+', '+$('org').value+'\nFertilizer N-P2O5-K2O kg/ha: '+v('fn')+'-'+v('fp')+'-'+v('fk')+'; '+$('period').value+'; spacing unit '+$('su').value+'; assumptions: survival '+v('surv')+'%, marketable '+v('mkt')+'%, replacement '+v('rep')+'%, nursery success '+v('via')+'%.\nDensity formula: '+G.txt;draw()}
+function draw(){const t=$('lt').value,u=su();
+if(t==='double'){
+const unit=$('su').selectedOptions[0].text;
+const text=(x,y,label)=>'<text x="'+x+'" y="'+y+'" text-anchor="middle" fill="currentColor" font-size="11">'+label+'</text>';
+let sketch='<g style="stroke:var(--line);stroke-width:1">';
+for(const y of [24,55,113,144])sketch+='<line x1="22" y1="'+y+'" x2="175" y2="'+y+'"/>';
+sketch+='</g>';
+for(const y of [24,55,113,144])for(const x of [30,65,100,135,170])sketch+='<circle cx="'+x+'" cy="'+y+'" r="4" style="fill:var(--acc)"/>';
+for(const [a,b,label] of [[24,55,'Within: '+v('d')+' '+unit],[55,113,'Between: '+v('B')+' '+unit]]){
+sketch+='<path d="M185 '+a+' h8 M189 '+a+' V'+b+' M185 '+b+' h8" fill="none" stroke="currentColor"/>';
+sketch+=text(252,(a+b)/2+4,label);
+}
+sketch+=text(100,165,'Plant spacing: '+v('p2')+' '+unit);
+$('dia').innerHTML=sketch;$('dia').setAttribute('aria-label','Double-row schematic, not to scale. Within-pair gap '+v('d')+' '+unit+', between-pair gap '+v('B')+' '+unit+', plant spacing '+v('p2')+' '+unit+'.');return;
+}
+$('dia').setAttribute('aria-label','Planting layout');let p,pit,off,per=3,st=0,ww=0,bw=0;
+if(t=='single'){p=v('p')*u;pit=v('r')*u;off=[0];per=5}
+else if(t=='tri'){p=pit=v('ts')*u;pit=p*.866;off=[0];per=6;st=1}
+else if(t=='double'){p=v('p2')*u;pit=(v('d')+v('B'))*u;off=[0,v('d')*u]}
+else if(t==='group'){p=v('p2')*u;pit=((v('gr')-1)*v('gi')+v('gg'))*u;off=Array.from({length:v('gr')},(_,i)=>i*v('gi')*u);}
+else{p=v('p2')*u;const b=v('bw')*u;ww=v('ww')*u;bw=b;pit=b+ww;const k=Math.max(1,Math.floor(v('rows')));off=[];for(let i=0;i<k;i++)off.push((i+.5)*b/k)}
+if(!(p>0&&pit>0))return;const W=p*9,H=pit*per,s=Math.min(300/W,150/H),r=Math.max(1.6,Math.min(5,Math.min(p,pit)*s*.3));let o='<rect x="10" y="10" width="'+W*s+'" height="'+H*s+'" rx="6" style="fill:var(--bg);stroke:var(--line)"/>';
+for(let k=0;k<per;k++){if(ww)o+='<rect x="10" y="'+(10+(k*pit+bw)*s)+'" width="'+W*s+'" height="'+ww*s+'" style="fill:var(--line);opacity:.7"/>';
+for(let j=0;j<off.length;j++){const y=10+(k*(st?1:1)*pit+off[j]+(st?0:0))*s,sh=(st?k%2:$('alignment').value==='staggered'?(k*off.length+j)%2:0)?p/2:0;for(let i=0;i<9;i++){const x=10+(i*p+sh+p/2)*s;if(x<10+W*s-1&&y<10+H*s)o+='<circle cx="'+x+'" cy="'+(y+(off[j]?0:pit*.15*s)).toFixed(1)+'" r="'+r+'" style="fill:var(--acc)"/>'}}}
+$('dia').innerHTML=o}
+document.querySelectorAll('[data-s]').forEach(e=>{if(e.id!='crop'&&e.id!='su'&&e.id!='lt')e.addEventListener('input',calc);});
+$('th').onclick=()=>{const d=document.documentElement,t=d.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');d.dataset.theme=t=='dark'?'light':'dark'};
+$('cp').onclick=async()=>{if(!last)return;try{if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(last);else{const field=document.createElement('textarea');field.value=last;document.body.appendChild(field);field.select();const copied=document.execCommand('copy');field.remove();if(!copied)throw Error('Clipboard unavailable')}$('cp').textContent='Done'}catch(e){$('cp').textContent='Copy not available'}setTimeout(()=>$('cp').textContent='Copy summary',1500)};
+$('share').onclick=async()=>{if(!last)return;try{if(navigator.share)await navigator.share({title:'SmartCrop plan',text:last});else $('cp').click()}catch(e){}};
+$('print').onclick=()=>window.print();
+const store=()=>{try{const data=JSON.parse(localStorage.getItem('sc')||'[]');return Array.isArray(data)?data:[]}catch(e){return[]}};
+let editing=null;
+const escapeText=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function persist(L){try{localStorage.setItem('sc',JSON.stringify(L));$('save-status').textContent='Saved on this device.';return true}catch(e){$('save-status').textContent='Could not save: device storage is unavailable or full. Export a backup.';return false}}
+function lst(){const L=store();$('list').innerHTML=L.map((s,i)=>'<div class="saved"><button class="alt" data-l="'+i+'">'+escapeText(s.name)+'</button><button class="alt" data-copy="'+i+'" aria-label="Duplicate plan">Duplicate</button><button class="alt" data-d="'+i+'" aria-label="Delete plan">✕</button></div>').join('')}
+$('sv').onclick=()=>{if(!last)return;const L=store(),s={name:$('nm').value||('Calculation '+(L.length+1)),vals:{},ratio,cur,spacingVersion:2};document.querySelectorAll('[data-s]').forEach(e=>s.vals[e.id]=e.value);if(editing===null)L.push(s);else L[editing]=s;if(persist(L)){editing=null;$('sv').textContent='Save';$('nm').value='';lst()}};
+$('list').onclick=e=>{const L=store(),b=e.target.closest('button');if(!b)return;
+if(b.dataset.d!==undefined){if(!confirm('Delete this saved plan?'))return;L.splice(+b.dataset.d,1);if(persist(L)){editing=null;$('sv').textContent='Save';lst()}}
+else if(b.dataset.copy!==undefined){const copy=JSON.parse(JSON.stringify(L[+b.dataset.copy]));copy.name+=' (copy)';L.push(copy);if(persist(L))lst()}
+else if(b.dataset.l!==undefined){const s=L[+b.dataset.l];$('landmode').value='area';Object.entries(s.vals).forEach(([k,x])=>{if($(k)&&$(k).matches('[data-s]'))$(k).value=x});if(!s.spacingVersion&&s.vals.lt==='double')$('B').value=+(Number(s.vals.B)-Number(s.vals.d)).toFixed(6);ratio=s.ratio||[.6,1,1.6];if(!('low' in s.vals)){$('low').value=ratio[0]*100;$('high').value=ratio[2]*100}cur=Number.isInteger(s.cur)?s.cur:-1;ou=$('su').value;previousDimensionUnit=$('fu').value;editing=+b.dataset.l;$('nm').value=s.name;$('sv').textContent='Update plan';$('cnote').textContent='Loaded saved assumptions. Review before use.';lay();calc()}};
+$('export').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(store(),null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='smartcrop-plans.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+$('import').onchange=async e=>{try{const plans=JSON.parse(await e.target.files[0].text());if(!Array.isArray(plans)||plans.some(p=>!p||typeof p.name!=='string'||!p.vals||typeof p.vals!=='object'||Array.isArray(p.vals)||Object.values(p.vals).some(v=>typeof v!=='string')))throw Error();if(persist([...store(),...plans]))lst()}catch(e){$('save-status').textContent='Import failed. Choose a valid SmartCrop plans backup.'}};
+if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
+let previousDimensionUnit='m';
+$('fu').addEventListener('change',()=>{const f=UF[previousDimensionUnit]/UF[$('fu').value];['fl','fw','margin'].forEach(id=>$(id).value=+(v(id)*f).toFixed(8));previousDimensionUnit=$('fu').value;calc()});
+lay();cs.value='0';setCrop();lst();
+</script></body></html>
