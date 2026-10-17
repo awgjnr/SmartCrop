@@ -1,0 +1,1 @@
+{"name":"smartcrop","version":"2.0.0","private":true,"description":"Local-first plant population calculator and hand-planting field planner","scripts":{"test":"node --test tests/*.test.cjs"},"engines":{"node":">=20"}}

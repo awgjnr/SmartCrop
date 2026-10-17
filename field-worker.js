@@ -1,0 +1,2 @@
+importScripts('field-geometry.js');
+self.onmessage=e=>{const {block,config,compare,id,phase=.5}=e.data;try{if(!Number.isFinite(phase)||phase<0||phase>=1)throw Error('Invalid row offset.');const g=FieldGeo.prepare(block);const metrics=FieldGeo.metrics(g,Number(config.setback));const plans=compare?FieldGeo.compare(g,config,progress=>postMessage({id,progress})): [{...FieldGeo.layout(g,config,Number(config.bearing),phase),label:'Your direction'}];postMessage({id,metrics,plans});}catch(error){postMessage({id,error:error.message});}};
