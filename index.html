@@ -33,8 +33,8 @@ svg{width:100%;height:auto;display:block;margin-top:8px}
 .saved{display:flex;gap:8px;margin-top:8px}.saved button{min-height:40px}.saved{flex-wrap:wrap}.saved button{width:auto}.saved button:first-child{flex:1;text-align:left}
 @media print{body{max-width:none;padding:0;background:white;color:black}#bar,#sv,#cp,#share,#print,#th,#export,#import,#list{display:none}.card,details{break-inside:avoid}details:not([open]){display:none}}
 #crop-figure{margin:12px 0 0}#crop-image{width:min(100%,260px);aspect-ratio:1;margin:auto;border-radius:14px;background-image:url(assets/crops.png);background-size:600% 400%;background-repeat:no-repeat;opacity:.8}#crop-caption{text-align:center;font-weight:600;margin-top:8px}
-</style></head><body>
-<nav style="display:flex;flex-wrap:wrap;gap:16px;padding-top:16px;font-size:14px"><a href="index.html" style="color:var(--acc);font-weight:600">Calculator</a><a href="field.html" style="color:var(--acc)">Field Studio · map your farm ↗</a><a href="farm.html" style="color:var(--acc)">Farm Desk</a></nav><h1>SmartCrop</h1><p class="sub">Plant population, planting material and yield planner. Everything runs on your phone.</p>
+</style><link rel="stylesheet" href="app.css"><script defer src="app.js"></script></head><body>
+<header class="app-header"><a class="app-brand" href="index.html"><span aria-hidden="true">↟</span> SmartCrop</a><nav aria-label="Main navigation"><a href="index.html" class="active" aria-current="page">Calculator</a><a href="field.html">Field Studio</a><a href="farm.html">Farm Desk</a></nav><button id="th" class="app-theme" aria-label="Switch colour theme">◐</button></header><div class="calculator-page"><div class="page-intro"><span class="eyebrow">PLAN YOUR PLANTING</span><h1>Start with the right spacing.</h1><p class="sub">Plant population, planting material and yield — with assumptions you can check.</p></div><div class="calculator-grid"><section class="calculator-inputs" aria-label="Calculator inputs">
 
 <details open><summary>1. Crop</summary><div class="in">
 <label for="crop">Crop</label><select id="crop" data-s></select>
@@ -85,14 +85,14 @@ svg{width:100%;height:auto;display:block;margin-top:8px}
 <label for="tgt">Harvest target in kg (optional, for land planning)</label><input id="tgt" data-s type="number" inputmode="decimal" placeholder="e.g. 5000">
 </div></details>
 
-<div class="card" id="res" role="status" aria-live="polite"></div>
+</section><section class="calculator-output" aria-label="Calculation results"><div class="card" id="res" role="status" aria-live="polite"></div>
 <div class="card"><div class="lab">Save this calculation</div>
 <div class="row"><input id="nm" placeholder="Name, e.g. Block A maize"><button id="sv">Save</button></div>
 <div id="save-status" role="status"></div><div id="list"></div><button class="alt" id="export" style="margin-top:8px">Export saved plans</button><label for="import">Import saved plans (JSON)</label><input id="import" type="file" accept="application/json"><button class="alt" id="cp" style="margin-top:10px">Copy summary</button>
 <button class="alt" id="share" style="margin-top:8px">Share summary</button><button class="alt" id="print" style="margin-top:8px">Print / save PDF</button>
-<button class="alt" id="th" style="margin-top:8px">Switch light or dark</button></div>
+</div>
 <div class="note">Offline: this downloaded HTML runs without internet. For installation, serve the offline package over HTTPS and open it once while online.</div><div class="note">Crop yields and spacings are indicative starting benchmarks. Confirm them with local extension guidance and replace them with your own figures. Estimates are not guaranteed outcomes.</div>
-<div id="bar"><div><b id="b1">–</b><span>plants in total</span></div><div style="text-align:right"><b id="b2">–</b><span>base yield</span></div></div>
+</section></div></div><div id="bar"><div><b id="b1">–</b><span>plants in total</span></div><div style="text-align:right"><b id="b2">–</b><span>base yield</span></div></div>
 
 <script>
 const $=id=>document.getElementById(id),UF={cm:.01,m:1,in:.0254,ft:.3048},LF={ac:4046.856,ha:1e4,m2:1,ft2:.092903};
@@ -229,7 +229,7 @@ for(let k=0;k<per;k++){if(ww)o+='<rect x="10" y="'+(10+(k*pit+bw)*s)+'" width="'
 for(let j=0;j<off.length;j++){const y=10+(k*(st?1:1)*pit+off[j]+(st?0:0))*s,sh=(st?k%2:$('alignment').value==='staggered'?(k*off.length+j)%2:0)?p/2:0;for(let i=0;i<9;i++){const x=10+(i*p+sh+p/2)*s;if(x<10+W*s-1&&y<10+H*s)o+='<circle cx="'+x+'" cy="'+(y+(off[j]?0:pit*.15*s)).toFixed(1)+'" r="'+r+'" style="fill:var(--acc)"/>'}}}
 $('dia').innerHTML=o}
 document.querySelectorAll('[data-s]').forEach(e=>{if(e.id!='crop'&&e.id!='su'&&e.id!='lt')e.addEventListener('input',calc);});
-$('th').onclick=()=>{const d=document.documentElement,t=d.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');d.dataset.theme=t=='dark'?'light':'dark'};
+
 $('cp').onclick=async()=>{if(!last)return;try{if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(last);else{const field=document.createElement('textarea');field.value=last;document.body.appendChild(field);field.select();const copied=document.execCommand('copy');field.remove();if(!copied)throw Error('Clipboard unavailable')}$('cp').textContent='Done'}catch(e){$('cp').textContent='Copy not available'}setTimeout(()=>$('cp').textContent='Copy summary',1500)};
 $('share').onclick=async()=>{if(!last)return;try{if(navigator.share)await navigator.share({title:'SmartCrop plan',text:last});else $('cp').click()}catch(e){}};
 $('print').onclick=()=>window.print();

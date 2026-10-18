@@ -128,3 +128,6 @@ The server requests structured observations, uncertain differential IDs, questio
 ### Validation limits
 
 New calculation, API-boundary and simulated-interface tests cover yield-loss accounting, labour bases, water/source bottlenecks, missing weather, crop/location coverage, consent and image limits, provider configuration/auth/failure states, photo-case storage and exports, and plan handoffs. Provider responses and weather were mocked for repeatability. A live paid image request, live weather delivery, real-device photo decoding, IndexedDB behaviour and browser rendering remain unverified in this environment. Earlier browser-download restrictions still apply.
+
+### Shared interface
+Calculator, Field Studio and Farm Desk share navigation, spacing, typography, colour theme and controls through `app.css` and `app.js`. Action notices appear as soft popups for five seconds (eight for errors), pause on hover/focus and support dismissal or Escape. Validation results, GPS accuracy, forecast freshness and agronomic caveats remain inline. The theme choice persists across modules.
