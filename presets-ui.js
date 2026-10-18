@@ -1,0 +1,11 @@
+/* Same source-linked layout picker on Calculator and Field Studio. */
+(()=>{'use strict';const bridge=window.SmartCropBridge,P=window.LayoutPresets;if(!bridge?.layoutCrop||!P)return;const $=id=>document.getElementById(id),field=bridge.key==='field',id=field?'field-layout-preset':'calc-layout-preset',select=$(id),note=$(id+'-note');if(!select)return;const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let crop='',options=[];
+function matches(p){const s=bridge.layoutState();return s.pattern===p.pattern&&s.alignment===p.alignment&&Math.abs(s.spacing-p.spacing)<1e-7&&(p.pattern==='double'?Math.abs(s.within-p.within)<1e-7&&Math.abs(s.between-p.between)<1e-7:Math.abs(s.rowGap-p.rowGap)<1e-7);}
+function describe(p){note.innerHTML=p?'<b>'+esc(p.reference.kind)+'</b> · '+(P.density(p)*10000).toLocaleString(undefined,{maximumFractionDigits:0})+' planting positions/ha before access deductions.<br>'+esc(p.note)+' '+esc(p.reference.scope)+'<br><a href="'+esc(p.reference.url)+'" target="_blank" rel="noopener">'+esc(p.reference.title)+'</a><br>Reviewed '+P.reviewed+'. Editable starting point; local suitability and yield assumptions still require checking.':'Custom settings. Choose a published layout above, or keep editing your own spacing. No source recommendation is claimed for custom settings.';}
+function refresh(){const next=bridge.layoutCrop();if(next!==crop){crop=next;options=P.forCrop(crop);select.innerHTML='<option value="custom">Custom / current settings</option>'+options.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.label)+'</option>').join('');}const match=options.find(matches);select.value=match?.id||'custom';describe(match);}
+function apply(p){bridge.layoutApply(p);select.value=p.id;describe(p);window.SmartCropCycleUI?.capture();}
+select.addEventListener('change',()=>{const p=options.find(p=>p.id===select.value);if(p)apply(p);else describe(null);});
+$(field?'field-crop':'crop').addEventListener('change',()=>{crop='';refresh();if(options.length)apply(options[0]);});
+const controls=field?['pattern','plant-spacing','row-gap','within-gap','between-gap','alignment']:['lt','su','r','p','p2','d','B','ts','alignment'];for(const key of controls)for(const event of ['input','change'])$(key).addEventListener(event,refresh);
+window.SmartCropLayouts={refresh};refresh();
+})();
