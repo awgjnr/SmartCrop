@@ -2,7 +2,8 @@
 (()=>{
  const root=document.documentElement;
  try{root.dataset.theme=localStorage.getItem('smartcrop-theme')||'light';}catch{root.dataset.theme='light';}
- document.getElementById('th')?.addEventListener('click',()=>{root.dataset.theme=root.dataset.theme==='dark'?'light':'dark';try{localStorage.setItem('smartcrop-theme',root.dataset.theme);}catch{}});
+ function syncTheme(){const b=document.getElementById('th');if(!b)return;const dark=root.dataset.theme==='dark';b.innerHTML=(dark?'☀':'☾')+' <span class="theme-word">'+(dark?'Light mode':'Dark mode')+'</span>';b.setAttribute('aria-label','Switch to '+(dark?'light':'dark')+' mode');b.setAttribute('title','Switch to '+(dark?'light':'dark')+' mode');b.setAttribute('aria-pressed',String(dark));}syncTheme();
+ document.getElementById('th')?.addEventListener('click',()=>{root.dataset.theme=root.dataset.theme==='dark'?'light':'dark';try{localStorage.setItem('smartcrop-theme',root.dataset.theme);}catch{}syncTheme();});
  const toast=document.createElement('div');toast.className='sc-toast';toast.setAttribute('role','status');toast.setAttribute('aria-live','polite');toast.setAttribute('aria-atomic','true');toast.hidden=true;
  const text=document.createElement('span'),close=document.createElement('button');close.textContent='×';close.setAttribute('aria-label','Dismiss notification');toast.append(text,close);document.body.appendChild(toast);
  let timer,fade,remaining,started;
@@ -15,5 +16,5 @@
  // GPS accuracy, medical-style screening results and agronomic caveats stay inline.
  const ids=['message','desk-message','save-status','case-status','service-status'];
  for(const id of ids){const node=document.getElementById(id);if(!node)continue;node.classList.add('sc-notice-source');const notify=()=>{const message=node.textContent.trim();if(message)show(message,node.classList.contains('error')||/failed|error|unavailable|could not|invalid|choose|enter|required/i.test(message));};new MutationObserver(notify).observe(node,{childList:true,characterData:true,subtree:true});notify();}
- window.SmartCropUI={notify:show,dismiss};
+ window.SmartCropUI={notify:show,dismiss,syncTheme};
 })();
