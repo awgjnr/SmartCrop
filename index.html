@@ -205,13 +205,14 @@ const text=(x,y,label)=>'<text x="'+x+'" y="'+y+'" text-anchor="middle" fill="cu
 let sketch='<g style="stroke:var(--line);stroke-width:1">';
 for(const y of [24,55,113,144])sketch+='<line x1="22" y1="'+y+'" x2="175" y2="'+y+'"/>';
 sketch+='</g>';
-for(const y of [24,55,113,144])for(const x of [30,65,100,135,170])sketch+='<circle cx="'+x+'" cy="'+y+'" r="4" style="fill:var(--acc)"/>';
+const staggered=$('alignment').value==='staggered';
+for(const [row,y] of [24,55,113,144].entries())for(const baseX of [30,65,100,135,170]){const x=baseX+(staggered&&row%2?17.5:0);if(x<=175)sketch+='<circle cx="'+x+'" cy="'+y+'" r="4" style="fill:var(--acc)"/>';}
 for(const [a,b,label] of [[24,55,'Within: '+v('d')+' '+unit],[55,113,'Between: '+v('B')+' '+unit]]){
 sketch+='<path d="M185 '+a+' h8 M189 '+a+' V'+b+' M185 '+b+' h8" fill="none" stroke="currentColor"/>';
 sketch+=text(252,(a+b)/2+4,label);
 }
 sketch+=text(100,165,'Plant spacing: '+v('p2')+' '+unit);
-$('dia').innerHTML=sketch;$('dia').setAttribute('aria-label','Double-row schematic, not to scale. Within-pair gap '+v('d')+' '+unit+', between-pair gap '+v('B')+' '+unit+', plant spacing '+v('p2')+' '+unit+'.');return;
+$('dia').innerHTML=sketch;$('dia').setAttribute('aria-label','Double-row schematic, '+(staggered?'alternate rows staggered by half the plant spacing':'aligned rows')+', not to scale. Within-pair gap '+v('d')+' '+unit+', between-pair gap '+v('B')+' '+unit+', plant spacing '+v('p2')+' '+unit+'.');return;
 }
 $('dia').setAttribute('aria-label','Planting layout');let p,pit,off,per=3,st=0,ww=0,bw=0;
 if(t=='single'){p=v('p')*u;pit=v('r')*u;off=[0];per=5}
