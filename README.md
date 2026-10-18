@@ -131,3 +131,6 @@ New calculation, API-boundary and simulated-interface tests cover yield-loss acc
 
 ### Shared interface
 Calculator, Field Studio and Farm Desk share navigation, spacing, typography, colour theme and controls through `app.css` and `app.js`. Action notices appear as soft popups for five seconds (eight for errors), pause on hover/focus and support dismissal or Escape. Validation results, GPS accuracy, forecast freshness and agronomic caveats remain inline. The theme choice persists across modules.
+
+### Botanical health artwork and compact actions
+Six transparent botanical symptom illustrations in `assets/health.png` accompany the curated crop-health cards. These generated examples are labelled illustrative and are not diagnostic photographs. Farm Desk reuses the existing crop atlas. Calculator actions are icons at the top right; the save panel holds named plans and import/export. Icons carry accessible names and tooltips.
