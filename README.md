@@ -192,3 +192,7 @@ Field Studio's **Map view** selector offers an offline planning grid, OpenStreet
 ### Save safety and recovery
 
 The shared crop-cycle bar now shows pending, saved or failed local saves. If storage is unavailable/full or another tab changes the cycle, the error remains visible. **Export recovery copy** works without saving and includes the active cycle plus current module/profile inputs. Restore it with **Restore cycle** to create a separate cycle. Unsubmitted forms and health cases/photos are excluded; save/export those separately. Browser navigation warnings are a last resort and may be suppressed by the platform. See `AUDIT_ITERATIONS.md` for iteration 1 findings, test evidence and the proposed remaining review areas.
+
+### Guided setup
+
+Farm Desk now starts with a collapsible five-step guide. Name the farm and block, choose and save the crop/environment, review manual or mapped planting quantities, enter the planned/actual field-planting date, and review sourced yield assumptions. Use **Review & confirm step** after checking each step. Progress belongs to the active cycle, survives cycle export/restore and reopens when relevant inputs change. Default/example figures do not automatically complete setup; Overview counts and forecasts request review until confirmed. Fictional sample boundaries cannot be confirmed as your real mapped field. Setup is a planning checklist, not agronomic approval, and the app remains usable while steps are incomplete.

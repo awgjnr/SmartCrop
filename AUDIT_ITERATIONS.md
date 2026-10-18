@@ -47,3 +47,25 @@ Reassess these against findings and user feedback at the start of each iteration
 8. Strengthen health watchlists and adviser case handoff using verified sources and clearly bounded treatment guidance.
 9. Connect production authentication and account-owned storage once hosting/provider configuration is available; verify access isolation and recovery.
 10. Complete browser/device, offline/PWA upgrade, accessibility and performance acceptance for release.
+
+## Iteration 2 — guided farm and block setup (18 October 2026)
+
+### Finding
+
+A new Farm Desk cycle starts with useful example quantities and yield inputs, but there was no explicit review journey separating those inputs from a user's confirmed block plan. Users had to discover the order of farm identification, environment settings, mapped/manual quantities, dates and yield assumptions themselves.
+
+### Implemented
+
+- A collapsible five-step guide at the top of Farm Desk: farm/block identity, crop/environment, planting quantities, field-planting date, and yield assumptions. Calculator and Field Studio link into the guide.
+- Persistent per-cycle confirmations; example/default values do not complete any step automatically. Confirmations are included in existing cycle exports and restores.
+- Direct navigation to the relevant mounted input, preserving unrelated form drafts. Existing sections and navigation remain available throughout.
+- Manual estimates and mapped layouts are explicitly distinguished. Mapped confirmation requires a selected layout; stale layouts and fictional sample boundaries cannot be confirmed as a real mapped plan. Samples remain available for practice, visibly labelled.
+- Valid dates, positive area, whole planting counts, ordered yield scenarios, a yield period and named counted units are checked. Yield assumptions need a source or an explicit user-estimate description.
+- Changes to relevant inputs reopen reviews; earlier steps must be reviewed before dependent confirmations are accepted. Save failures do not advance progress.
+- Overview planting-count and base-yield tiles ask for review until those setup steps are confirmed, so initial example figures do not appear there as a finished plan.
+
+### Validation and limits
+
+95 automated checks pass, including eight new setup core/interface tests. They cover explicit review of defaults, ordering, date/quantity validation, changed-input invalidation, sample/missing layout rejection, counted-unit naming, backup round-trip, navigation with draft preservation, failed saves and source-draft retention. These are source/simulated-DOM checks; rendered browser/mobile acceptance remains outstanding.
+
+The guide records planning review, not agronomic approval. It does not validate field measurements against a survey, authenticate users, guarantee yield, establish crop suitability, or complete water, cost and health monitoring. Unsaved environment settings still require their own Save action. Guide basis/source drafts become persistent only when their step is confirmed. Existing plans are not erased or silently confirmed.
