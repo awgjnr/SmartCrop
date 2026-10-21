@@ -69,3 +69,31 @@ A new Farm Desk cycle starts with useful example quantities and yield inputs, bu
 95 automated checks pass, including eight new setup core/interface tests. They cover explicit review of defaults, ordering, date/quantity validation, changed-input invalidation, sample/missing layout rejection, counted-unit naming, backup round-trip, navigation with draft preservation, failed saves and source-draft retention. These are source/simulated-DOM checks; rendered browser/mobile acceptance remains outstanding.
 
 The guide records planning review, not agronomic approval. It does not validate field measurements against a survey, authenticate users, guarantee yield, establish crop suitability, or complete water, cost and health monitoring. Unsaved environment settings still require their own Save action. Guide basis/source drafts become persistent only when their step is confirmed. Existing plans are not erased or silently confirmed.
+
+## Iteration 3 — saved-workspace backup and safe restore (21 October 2026)
+
+### Finding
+
+The existing export actions saved one cycle, one field, one profile or one health case at a time. Health-case photos live in IndexedDB while most plans live in localStorage. A cycle JSON alone therefore could not transfer or protect the complete saved workspace.
+
+### Implemented
+
+- Dedicated `backup.html` page, linked from the cycle bar and personalisation dialog. Saved-data scope and exclusions are visible before export.
+- One portable JSON backup for all saved cycles (including embedded growth observations/photos), saved layouts, saved calculator entries, legacy Farm Desk state, preferences, and all health cases with photos.
+- Allowlisted storage extraction: unrelated browser keys, weather caches, temporary handoffs and access credentials are not collected. A photo-store failure blocks complete export rather than silently omitting photos.
+- Schema, size, geometry, record-count, image-data and screening-reference validation. File selection shows a readable contents preview and cycle names before the separate import action. Displayed names are escaped.
+- Add-as-copies restoration with new cycle/field/case IDs. Case-to-cycle references are remapped; unlinked cases get an isolated restored cycle, and legacy Farm Desk data becomes its own cycle. Current records remain present and the current active cycle is retained. Preferences are replaced only on explicit opt-in.
+- Atomic IndexedDB batch additions and a localStorage recovery journal coordinate changes across the stores. Quota/database failures trigger rollback. Interrupted restores can be rolled back on the backup page. Token checks protect pre-existing cases from cleanup, and changed-data checks refuse to overwrite concurrent edits.
+- A service-worker version update includes the backup page and its offline assets.
+
+### Validation
+
+109 automated checks pass (14 new core/interface checks). Coverage includes photo-preserving round trips, case-link remapping, optional preferences, orphan isolation, corrupt/unsafe file rejection, polygon validation, ID collisions, quota failure rollback, photo-store failures, stale snapshots, interrupted restore rollback, recovery conflicts, legacy-plan preservation, preview without mutation, escaped contents and export failure notices.
+
+These tests use injected storage adapters and a simulated DOM. Native browser IndexedDB transaction behaviour, actual downloaded files, page interruption, offline cache upgrades, mobile presentation and browser storage quotas still require device acceptance. No real user workspace was imported or altered during these checks.
+
+### Limits
+
+This is saved-data transfer, not automatic cloud backup. Close other app tabs during export/restore. localStorage and IndexedDB do not offer a shared transaction; the journal provides recoverability, not a guarantee against every browser crash or concurrent writer. The recovery journal needs additional free browser storage. A file is limited to 64 MB; combined restored workspaces must also remain within that limit and existing record-count limits. Repeat imports create additional copies. Files are unencrypted and have no cryptographic authenticity claim. Unsubmitted forms and unsaved photos are excluded.
+
+Next candidate: iteration 4, consistency of crop/area/position handoffs between Calculator, Field Studio and Farm Desk.
