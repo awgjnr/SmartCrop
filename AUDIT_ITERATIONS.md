@@ -97,3 +97,29 @@ These tests use injected storage adapters and a simulated DOM. Native browser In
 This is saved-data transfer, not automatic cloud backup. Close other app tabs during export/restore. localStorage and IndexedDB do not offer a shared transaction; the journal provides recoverability, not a guarantee against every browser crash or concurrent writer. The recovery journal needs additional free browser storage. A file is limited to 64 MB; combined restored workspaces must also remain within that limit and existing record-count limits. Repeat imports create additional copies. Files are unencrypted and have no cryptographic authenticity claim. Unsubmitted forms and unsaved photos are excluded.
 
 Next candidate: iteration 4, consistency of crop/area/position handoffs between Calculator, Field Studio and Farm Desk.
+
+## Iteration 4 — consistent module handoffs (24 October 2026)
+
+### Confirmed findings
+
+- Field Studio wrote a global layout handoff without a cycle identifier, and Farm Desk could import it into another cycle.
+- Shared capture replaced all common fields whenever any Calculator output changed. A yield-assumption edit could therefore replace a mapped count with a theoretical Calculator count, even though spacing had not changed.
+- Farm Desk skipped shared-value refresh when the latest source was Farm Desk itself, allowing older saved view fields to remain inconsistent with common values. It also reapplied Calculator assumptions on reopening, potentially overwriting saved yield edits.
+- Shared stale-layout messaging was embedded in the Farm Desk renderer and did not consistently appear in the other modules.
+
+### Implemented
+
+- Delta-aware common-value merging: yield/assumption changes are independent of crop/area/count changes. Genuine quantity edits transfer a coherent set of values and flag existing field layouts as stale; unit-rounding noise is tolerated. Invalid, fractional or negative shared counts are rejected.
+- Persistent cycle-bar quantity/source display, with a separate Calculator preview count when its theoretical estimate differs. Shared warnings render on all modules.
+- Cycle-bound selected-layout records include geometry identity and selected bearing/phase. Farm Desk rejects missing, wrong-cycle, stale or quantity-mismatched selections instead of using the legacy global handoff. Map style and boundary-name changes do not invalidate geometry identity.
+- Farm Desk refreshes shared crop/area/count on load. Saved yield assumptions remain intact unless the crop changes; copying Calculator yield assumptions is an explicit confirmed action. New views may inherit matching assumptions, and crop changes drop old inherited assumptions.
+- Field-to-Farm area transfer retains numeric precision rather than rounding hectares to six decimal places.
+- Recovery exports use the same quantity-merging rules. Workspace and single-cycle copy restores remap their own layout-selection cycle identifier. Legacy mapped records without a bound selection request one fresh layout generation/selection.
+
+### Validation and limits
+
+121 automated checks pass, including quantity-versus-assumption isolation, coherent transfers, rounding tolerance, invalid count rejection, cycle/geometry binding, changed-input invalidation, active-cycle controller integration, legacy handoff rejection, Farm Desk refresh, preservation and explicit copying of yield assumptions, crop-mismatch rejection, and restored selection references.
+
+Tests exercise pure modules and simulated interfaces. Real browser navigation, device GPS, external tile delivery and browser/PWA acceptance remain pending. Changing shared quantities does not automatically rewrite labour activities, recorded financial transactions, irrigation assumptions or treatment records; existing review warnings and separate cycle records remain important.
+
+Next candidate: iteration 5, yield/selling-unit assumptions and incomplete-budget clarity.

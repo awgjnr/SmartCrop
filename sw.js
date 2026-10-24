@@ -1,4 +1,4 @@
-const CACHE='smartcrop-workspace-backup-v16';
+const CACHE='smartcrop-shared-context-v17';
 const ASSETS=['./backup.html','./backup.css','./workspace-core.js','./workspace-db.js','./workspace-ui.js','./setup-core.js','./setup-ui.js','./login.html','./signup.html','./auth.css','./auth.js','./farm-views.js','./personalisation.js','./personalisation.css','./block-core.js','./block-ui.js','./assets/stages.png','./layout-presets.js','./presets-ui.js','./cycle-core.js','./cycle-ui.js','./assets/health.png','./app.css','./app.js','./','./index.html','./manifest.webmanifest','./icon.svg','./assets/crops.png','./field.html','./field.css','./field.js','./field-geometry.js','./field-import.js','./field-worker.js','./vendor/jszip.min.js','./farm.html','./farm.css','./farm.js','./farm-core.js','./crop-health-data.js'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('smartcrop-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});
